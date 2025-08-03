@@ -32,34 +32,34 @@ class ProdukController extends Controller
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
-    {
-        //
-        $request->validate([
-        'nama_produk'   => 'required',
-        'deskripsi'     => 'required',
-        'harga'         => 'required|numeric',
-        'qty'           => 'required|integer',
-        'category_id'   => 'required|exists:categories,id',
-        'foto'          => 'required|image|mimes:jpg,jpeg,png|max:2048',
-        ]);
+{
+    $request->validate([
+        'nama_produk' => 'required',
+        'deskripsi' => 'required',
+        'harga' => 'required|numeric',
+        'qty' => 'required|integer|min:1',
+        'foto' => 'nullable|image',
+        'category_id' => 'required|exists:categories,id',
+    ]);
 
-        $fotoName = null;
-        if ($request->hasFile('foto')) {
-            $fotoName = time() . '_' . $request->file('foto')->getClientOriginalName();
-            $request->file('foto')->move(public_path('images'), $fotoName);
-        }
-
-        Produk::create([
-            'nama_produk'  => $request->nama_produk,
-            'deskripsi'    => $request->deskripsi,
-            'harga'        => $request->harga,
-            'qty'          => $request->qty,
-            'category_id'  => $request->category_id,
-            'foto'         => $fotoName,
-        ]);
-
-        return redirect()->route('produk.index')->with('success', 'Produk berhasil ditambahkan.');  
+    if ($request->hasFile('foto')) {
+        $fotoName = time() . '_' . $request->file('foto')->getClientOriginalName();
+        $request->file('foto')->move(public_path('images'), $fotoName);
+        $foto = $fotoName;
     }
+
+    Produk::create([
+        'nama_produk' => $request->nama_produk,
+        'deskripsi' => $request->deskripsi,
+        'harga' => $request->harga,
+        'qty' => $request->qty,
+        'foto' => $foto,
+        'category_id' => $request->category_id,
+    ]);
+
+    return redirect()->route('produk.index')->with('success', 'Produk berhasil ditambahkan!');
+}
+
 
     /**
      * Display the specified resource.

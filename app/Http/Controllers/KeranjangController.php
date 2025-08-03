@@ -9,81 +9,34 @@ use Illuminate\Support\Facades\Auth;
 
 class KeranjangController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        $keranjangs = Keranjang::with('produk')
-            ->where('user_id', Auth::id())
-            ->get();
-
-        return view('keranjang.index', compact('keranjangs'));
+        $keranjang = Keranjang::with('produk')->where('user_id', Auth::id())->get();
+        return view('keranjang.index', compact('keranjang'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
         $request->validate([
-            'produk_id' => 'required|exists:products,id',
-            'jumlah' => 'required|integer|min:1',
+            'product_id' => 'required|exists:products,id',
+            'quantity' => 'required|integer|min:1',
         ]);
 
-        $keranjang = Keranjang::firstOrNew([
-            'user_id' => Auth::id(),
-            'produk_id' => $request->produk_id
-        ]);
+        $keranjang = Keranjang::updateOrCreate(
+            [
+                'user_id' => Auth::id(),
+                'product_id' => $request->product_id
+            ],
+            ['quantity' => $request->quantity]
+        );
 
-        $keranjang->jumlah += $request->jumlah;
-        $keranjang->save();
-
-        return redirect()->route('keranjang.index')->with('success', 'Produk berhasil ditambahkan ke keranjang.');
+        return redirect()->route('keranjang.index')->with('success', 'Produk ditambahkan ke keranjang.');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Keranjang $keranjang)
+    public function destroy($id)
     {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Keranjang $keranjang)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Keranjang $keranjang)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Keranjang $keranjang)
-    {
-        //
-        $item = Keranjang::where('user_id', Auth::id())->findOrFail($id);
+        $item = Keranjang::where('id', $id)->where('user_id', Auth::id())->firstOrFail();
         $item->delete();
-
-        return redirect()->route('keranjang.index')->with('success', 'Produk dihapus dari keranjang.');
+        return redirect()->route('keranjang.index')->with('success', 'Item dihapus dari keranjang.');
     }
 }

@@ -1,14 +1,44 @@
-<h2>Riwayat Pesanan</h2>
 
-@foreach ($pesanan as $item)
-    <div style="border:1px solid #aaa; padding:10px; margin-bottom:10px;">
-        @if($item->product && $item->product->foto)
-            <img src="{{ asset('storage/' . $item->product->foto) }}" width="100">
-        @endif
-        <p><strong>{{ $item->product->nama_produk ?? 'Produk tidak ditemukan' }}</strong></p>
-        <p>Status: {{ $item->status }}</p>
-        <p>Total: Rp{{ number_format($item->price, 0, ',', '.') }}</p>
-        <p>Ukuran: {{ $item->size }}</p>
-        <p>Dibuat pada: {{ $item->created_at->format('d M Y H:i') }}</p>
-    </div>
-@endforeach
+<div class="container">
+    <h2>Riwayat Pesanan</h2>
+
+    @if(session('success'))
+        <div style="color: green;">{{ session('success') }}</div>
+    @endif
+
+    @if ($pesanan->isEmpty())
+        <p>Tidak ada riwayat pesanan.</p>
+    @else
+        <table border="1" cellpadding="6">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Tanggal</th>
+                    <th>Produk</th>
+                    <th>Status</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($pesanan as $p)
+                    <tr>
+                        <td>{{ $p->id }}</td>
+                        <td>{{ $p->created_at->format('d-m-Y H:i') }}</td>
+                        <td>
+                            <ul>
+                                @foreach ($p->product as $item)
+                                    <li>{{ $item->nama_produk }} (x{{ $item->pivot->jumlah }})</li>
+                                @endforeach
+                            </ul>
+                        </td>
+                        <td>{{ $p->status }}</td>
+                        <td>Rp {{ number_format($p->total_harga, 0, ',', '.') }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    @endif
+
+    <br>
+    <a href="{{ route('pesanan.index') }}">Kembali ke Daftar Pesanan</a>
+</div>

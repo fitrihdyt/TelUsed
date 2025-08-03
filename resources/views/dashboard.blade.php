@@ -130,6 +130,8 @@
     </div>
 </section>
 
+<a href="{{ route('produk.create') }}" class="btn btn-secondary">Tambah Produk</a>
+
 <section class="categories">
     <h3>Berbelanja dari <span style="font-weight: bold;">Kategori Terpopuler</span> ✨</h3>
     <div class="category-list">

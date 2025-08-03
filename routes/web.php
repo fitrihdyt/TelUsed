@@ -11,6 +11,7 @@ use App\Http\Controllers\PesananController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ChatController;
+use App\Http\Controllers\CheckoutController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -20,18 +21,18 @@ Route::get('/test-admin', [AdminController::class, 'index'])->middleware('admin'
 
 Route::middleware('auth')->group(function () {
     Route::get('kategori', [KategoriController::class, 'index'])->name('kategori.index');
-    
     Route::resource('produk', ProdukController::class);
     Route::resource('keranjang', KeranjangController::class);
     Route::resource('alamat', AlamatController::class);
     
-    Route::get('/pesanan', [PesananController::class, 'index'])->name('pesanan.index');
-    Route::post('/pesanan/{id}/cancel', [PesananController::class, 'cancel'])->name('pesanan.cancel');
-    Route::get('/pesanan/riwayat', [PesananController::class, 'riwayat'])->name('pesanan.riwayat');
-    Route::post('/pesanan/{id}/status', [PesananController::class, 'updateStatus'])->name('pesanan.updateStatus');
-    Route::post('/pesanan/{id}/terima', [PesananController::class, 'konfirmasiDiterima'])->name('pesanan.terima');
-    
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::get('/pesanan', [PesananController::class, 'index'])->name('pesanan.index');
+    Route::put('/pesanan/{id}/cancel', [PesananController::class, 'cancel'])->name('pesanan.cancel');
+    Route::put('/pesanan/{id}/terima', [PesananController::class, 'konfirmasiDiterima'])->name('pesanan.terima');
+    Route::get('/pesanan/riwayat', [PesananController::class, 'riwayat'])->name('pesanan.riwayat');
 });
 
 Route::middleware(['auth', 'admin'])->group(function () {
@@ -57,11 +58,18 @@ Route::middleware('auth')->group(function () {
     Route::post('/chat/{conversation_id}/send', [ChatController::class, 'sendMessage'])->name('chat.send');
 });
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth'])->group(function () {
+    Route::get('/checkout/selected', [CheckoutController::class, 'selected'])->name('checkout.selected');
+    Route::post('/checkout/selected', [CheckoutController::class, 'storeSelected'])->name('checkout.selected.store');
+    Route::get('/checkout/success', [CheckoutController::class, 'success'])->name('checkout.success');
+    Route::get('/lacak', [CheckoutController::class, 'lacakPengiriman'])->name('lacak.pengiriman');
+    Route::put('/checkout/batal/{id}', [CheckoutController::class, 'batalkan'])->name('checkout.batal');
+});
+
+Route::middleware(['auth'])->group(function () {
     Route::get('/keranjang', [KeranjangController::class, 'index'])->name('keranjang.index');
-    Route::post('/keranjang/{produk}', [KeranjangController::class, 'tambah'])->name('keranjang.tambah');
-    Route::delete('/keranjang/{id}', [KeranjangController::class, 'hapus'])->name('keranjang.hapus');
-    Route::post('/keranjang/checkout', [KeranjangController::class, 'checkout'])->name('keranjang.checkout');
+    Route::post('/keranjang', [KeranjangController::class, 'store'])->name('keranjang.store');
+    Route::delete('/keranjang/{id}', [KeranjangController::class, 'destroy'])->name('keranjang.destroy');
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');

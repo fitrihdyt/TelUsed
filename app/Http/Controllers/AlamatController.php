@@ -4,105 +4,91 @@ namespace App\Http\Controllers;
 
 use App\Models\Alamat;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class AlamatController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
-        $alamat = Alamat::all();
+        $alamat = Alamat::where('user_id', Auth::id())->get();
         return view('alamat.index', compact('alamat'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
         return view('alamat.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
-        $validated = $request->validate([
-            'first_name'     => 'required|string|max:255',
-            'last_name'      => 'nullable|string|max:255',
-            'phone'          => 'required|string|max:20',
-            'email'          => 'required|email|max:255',
-            'address_title'  => 'required|string|max:255',
-            'address'        => 'required|string|max:255',
-            'address2'       => 'nullable|string|max:255',
-            'city'           => 'required|string|max:100',
-            'zip_code'       => 'required|string|max:20',
-            'is_personal'    => 'nullable|boolean',
+        $request->validate([
+            'first_name' => 'required',
+            'phone' => 'required',
+            'email' => 'required|email',
+            'address_title' => 'required',
+            'address' => 'required',
+            'city' => 'required',
+            'zip_code' => 'required',
         ]);
 
-        $validated['is_personal'] = $request->has('is_personal');
+        Alamat::create([
+            'user_id' => Auth::id(),
+            'first_name' => $request->first_name,
+            'last_name' => $request->last_name,
+            'phone' => $request->phone,
+            'email' => $request->email,
+            'address_title' => $request->address_title,
+            'address' => $request->address,
+            'address2' => $request->address2,
+            'city' => $request->city,
+            'zip_code' => $request->zip_code,
+            'is_personal' => $request->has('is_personal'),
+        ]);
 
-        Alamat::create($validated);
-
-        return redirect()->route('alamat.index')->with('success', 'Alamat berhasil ditambahkan!');
+        return redirect()->route('alamat.index')->with('success', 'Alamat berhasil ditambahkan.');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Alamat $alamat)
+    public function edit($id)
     {
-        //
-        return view('alamat.show', compact('alamat'));
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Alamat $alamat)
-    {
-        //
+        $alamat = Alamat::where('id', $id)->where('user_id', Auth::id())->firstOrFail();
         return view('alamat.edit', compact('alamat'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Alamat $alamat)
+    public function update(Request $request, $id)
     {
-        //
-        $validated = $request->validate([
-            'first_name'     => 'required|string|max:255',
-            'last_name'      => 'nullable|string|max:255',
-            'phone'          => 'required|string|max:20',
-            'email'          => 'required|email|max:255',
-            'address_title'  => 'required|string|max:255',
-            'address'        => 'required|string|max:255',
-            'address2'       => 'nullable|string|max:255',
-            'city'           => 'required|string|max:100',
-            'zip_code'       => 'required|string|max:20',
-            'is_personal'    => 'nullable|boolean',
+        $alamat = Alamat::where('id', $id)->where('user_id', Auth::id())->firstOrFail();
+
+        $request->validate([
+            'first_name' => 'required',
+            'phone' => 'required',
+            'email' => 'required|email',
+            'address_title' => 'required',
+            'address' => 'required',
+            'city' => 'required',
+            'zip_code' => 'required',
         ]);
 
-        $validated['is_personal'] = $request->has('is_personal');
+        $alamat->update([
+            'first_name' => $request->first_name,
+            'last_name' => $request->last_name,
+            'phone' => $request->phone,
+            'email' => $request->email,
+            'address_title' => $request->address_title,
+            'address' => $request->address,
+            'address2' => $request->address2,
+            'city' => $request->city,
+            'zip_code' => $request->zip_code,
+            'is_personal' => $request->has('is_personal'),
+        ]);
 
-        $alamat->update($validated);
-
-        return redirect()->route('alamat.index')->with('success', 'Alamat berhasil diperbarui!');
+        return redirect()->route('alamat.index')->with('success', 'Alamat berhasil diperbarui.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Alamat $alamat)
+    public function destroy($id)
     {
-        //
+        $alamat = Alamat::where('id', $id)->where('user_id', Auth::id())->firstOrFail();
         $alamat->delete();
-        return redirect()->route('alamat.index')->with('success', 'Alamat berhasil dihapus!');
+
+        return redirect()->route('alamat.index')->with('success', 'Alamat berhasil dihapus.');
     }
 }

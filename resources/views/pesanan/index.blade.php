@@ -1,41 +1,62 @@
-<h2>Lacak Pengiriman</h2>
 
-<nav>
-    @foreach(['Belum dibayar', 'Sedang diproses', 'Dikirim', 'Received', 'Done'] as $s)
-        <a href="{{ route('pesanan.index', ['status' => $s]) }}"
-           style="{{ $status == $s ? 'font-weight:bold;' : '' }}">{{ $s }}</a> |
-    @endforeach
-</nav>
+<div class="container">
+    <h2>Daftar Pesanan - Status: {{ $status }}</h2>
 
-<br>
-@foreach ($pesanan as $item)
-    <div style="border:1px solid #ccc; padding:10px; margin-bottom:10px;">
-        @if($item->product && $item->product->foto)
-            <img src="{{ asset('storage/' . $item->product->foto) }}" width="100" alt="gambar produk">
-        @endif
-        <p><strong>{{ $item->product->nama_produk ?? 'Produk tidak tersedia' }}</strong></p>
-        <p>Ukuran: {{ $item->size }}</p>
-        <p>Harga: Rp{{ number_format($item->price, 0, ',', '.') }}</p>
-        @if ($item->shipment_info)
-            <p>Status Pengiriman: {{ $item->shipment_info }}</p>
-        @endif
-        @if ($item->shipment_estimate)
-            <p>Estimasi Pengiriman: {{ $item->shipment_estimate }}</p>
-        @endif
-        <p><strong>Total: Rp{{ number_format($item->price, 0, ',', '.') }}</strong></p>
+    @if(session('success'))
+        <div style="color: green;">{{ session('success') }}</div>
+    @endif
 
-        @if (in_array($item->status, ['Belum dibayar', 'Sedang diproses']))
-            <form method="POST" action="{{ route('pesanan.cancel', $item->id) }}">
-                @csrf
-                <button type="submit">Cancel Order</button>
-            </form>
-        @endif
+    @if ($pesanan->isEmpty())
+        <p>Tidak ada pesanan dengan status "{{ $status }}".</p>
+    @else
+        <table border="1" cellpadding="6">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Produk</th>
+                    <th>Jumlah</th>
+                    <th>Status</th>
+                    <th>Total</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($pesanan as $p)
+                    <tr>
+                        <td>{{ $p->id }}</td>
+                        <td>
+                            <ul>
+                                @foreach ($p->product as $item)
+                                    <li>{{ $item->nama_produk }} (x{{ $item->pivot->jumlah }})</li>
+                                @endforeach
+                            </ul>
+                        </td>
+                        <td>{{ $p->product->sum('pivot.jumlah') }}</td>
+                        <td>{{ $p->status }}</td>
+                        <td>Rp {{ number_format($p->total_harga, 0, ',', '.') }}</td>
+                        <td>
+                            @if (in_array($p->status, ['Belum dibayar', 'Sedang diproses']))
+                                <form action="{{ route('pesanan.cancel', $p->id) }}" method="POST" style="display:inline;">
+                                    @csrf
+                                    @method('PUT')
+                                    <button type="submit" onclick="return confirm('Yakin batalkan pesanan ini?')">Batalkan</button>
+                                </form>
+                            @endif
 
-        @if ($item->status === 'Dikirim')
-            <form method="POST" action="{{ route('pesanan.konfirmasi', $item->id) }}">
-                @csrf
-                <button type="submit">Barang Diterima</button>
-            </form>
-        @endif
-    </div>
-@endforeach
+                            @if ($p->status === 'Dikirim')
+                                <form action="{{ route('pesanan.terima', $p->id) }}" method="POST" style="display:inline;">
+                                    @csrf
+                                    @method('PUT')
+                                    <button type="submit">Saya Terima</button>
+                                </form>
+                            @endif
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    @endif
+
+    <br>
+    <a href="{{ route('pesanan.riwayat') }}">Lihat Riwayat Pesanan</a>
+</div>

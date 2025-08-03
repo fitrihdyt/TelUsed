@@ -1,52 +1,189 @@
-<div class="container py-4">
-    <h2>Detail Produk</h2>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ $produk->nama_produk }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
 
-    <div class="card mb-4" style="max-width: 800px;">
-        <div class="row g-0">
-            <div class="col-md-4">
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+        }
+
+        .produk-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+
+        .produk-image {
+            flex: 1;
+            min-width: 280px;
+        }
+
+        .produk-image img {
+            width: 100%;
+            border-radius: 10px;
+            object-fit: cover;
+        }
+
+        .produk-info {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .produk-info h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            text-transform: capitalize;
+        }
+
+        .produk-info .harga {
+            font-size: 28px;
+            font-weight: bold;
+            color: #e53935;
+            background: #fcecec;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .produk-info .deskripsi {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 25px;
+        }
+
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .button-group form,
+        .button-group a {
+            display: inline-block;
+        }
+
+        .btn {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .btn-outline-primary {
+            border: 1px solid #007bff;
+            color: #007bff;
+            background: white;
+        }
+
+        .btn-outline-dark {
+            border: 1px solid #333;
+            color: #333;
+            background: white;
+        }
+
+        .stok {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .footer-actions {
+            border-top: 1px solid #ddd;
+            margin-top: 30px;
+            padding-top: 20px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .footer-actions a {
+            font-size: 14px;
+        }
+
+        input[type="number"] {
+            width: 70px;
+            padding: 6px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="produk-wrapper">
+            <div class="produk-image">
                 @if($produk->foto)
-                    <img src="{{ asset('images/' . $produk->foto) }}" class="img-fluid rounded-start" alt="Foto produk">
+                    <img src="{{ asset('images/' . $produk->foto) }}" alt="Foto produk">
                 @else
-                    <img src="{{ asset('images/default.png') }}" class="img-fluid rounded-start" alt="Foto default">
+                    <img src="{{ asset('images/default.png') }}" alt="Foto default">
                 @endif
             </div>
-            <div class="col-md-8">
-                <div class="card-body">
-                    <h5 class="card-title">{{ $produk->nama_produk }}</h5>
-                    <p class="card-text"><strong>Deskripsi:</strong><br>{{ $produk->deskripsi }}</p>
-                    <p class="card-text"><strong>Harga:</strong> Rp {{ number_format($produk->harga, 0, ',', '.') }}</p>
-                    <p class="card-text"><strong>Stok:</strong> {{ $produk->qty }}</p>
-                    <p class="card-text"><strong>Kategori:</strong> {{ $produk->kategori->nama_kategori ?? 'Tidak tersedia' }}</p>
+            <div class="produk-info">
+                <h1>{{ $produk->nama_produk }}</h1>
+                <div class="harga">Rp {{ number_format($produk->harga, 0, ',', '.') }}</div>
+                <div class="deskripsi">{{ $produk->deskripsi }}</div>
 
-                    <!-- Tombol aksi -->
-                    <div class="d-flex gap-2 my-3">
+                <div class="stok">Stok: {{ $produk->qty }}</div>
+                <div class="stok">Kategori: {{ $produk->kategori->nama_kategori ?? 'Tidak tersedia' }}</div>
+
+                <div class="button-group" style="margin-top: 20px;">
+                    @if ($produk->qty > 0)
                         <form action="{{ route('keranjang.store') }}" method="POST">
                             @csrf
-                            <input type="hidden" name="produk_id" value="{{ $produk->id }}">
-                            <input type="hidden" name="user_id" value="1"> {{-- Ganti manual untuk sekarang --}}
-                            <input type="number" name="jumlah" value="1" min="1" class="form-control mb-2" style="width:100px;" required>
+                            <input type="hidden" name="product_id" value="{{ $produk->id }}">
+                            <input type="hidden" name="user_id" value="{{ auth()->id() }}">
+                            @if($produk->qty == 1)
+                                <input type="hidden" name="quantity" value="1">
+                                <p>Jumlah: 1 (stok terbatas)</p>
+                            @else
+                                <input type="number" name="quantity" value="1" min="1" max="{{ $produk->qty }}" required>
+                            @endif
                             <button type="submit" class="btn btn-primary">Masukkan Keranjang</button>
                         </form>
 
-                        <form action="/transaksi/beli" method="POST">
-                            @csrf
-                            <input type="hidden" name="produk_id" value="{{ $produk->id }}">
-                            <input type="hidden" name="user_id" value="1"> {{-- Ganti manual --}}
-                            <button type="submit" class="btn btn-success">Beli Sekarang</button>
-                        </form>
-                    </div>
+                    @else
+                        <p class="text-danger">Stok habis</p>
+                    @endif
 
-                    <a href="{{ route('produk.index') }}" class="btn btn-secondary">Kembali</a>
+                    <a href="{{ route('dashboard') }}" class="btn btn-secondary">← Kembali</a>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Info Penjual -->
-    <div class="border rounded p-3 d-flex justify-content-between align-items-center">
-        <div>
-            <a href="/chat/{{ $produk->id }}" class="btn btn-outline-primary me-2">Chat Sekarang</a>
-            <a href="/toko/{{ $produk->id }}" class="btn btn-outline-dark">Kunjungi Toko</a>
+        <div class="footer-actions" style="margin-top: 40px;">
+            <div>
+                <a href="/chat/{{ $produk->id }}" class="btn btn-outline-primary">Chat Sekarang</a>
+            </div>
         </div>
     </div>
-</div>
+</body>
+</html>
